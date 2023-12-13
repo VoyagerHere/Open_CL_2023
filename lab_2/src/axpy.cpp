@@ -1,24 +1,33 @@
 #include "../include/axpy.h"
+#define THREADS omp_get_max_threads()
 
 void saxpy(const int& n, const float a, const float* x, const int& incx,
            float* y, const int& incy) {
-  for (int i = 0; i < n; i++) y[i * incy] += a * x[i * incx];
+  for (int i = 0; i < n; i++) {
+    y[i * incy] += a * x[i * incx];
+  }
 }
 void daxpy(const int& n, const double a, const double* x, const int& incx,
            double* y, const int& incy) {
-  for (int i = 0; i < n; i++) y[i * incy] += a * x[i * incx];
+  for (int i = 0; i < n; i++) {
+    y[i * incy] += a * x[i * incx];
+  }
 }
 
 void saxpy_omp(const int& n, const float a, const float* x, const int& incx,
                float* y, const int& incy) {
 #pragma omp parallel for num_threads(THREADS)
-  for (int i = 0; i < n; i++) y[i * incy] += a * x[i * incx];
+  for (int i = 0; i < n; i++) {
+    y[i * incy] += a * x[i * incx];
+  }
 }
 
 void daxpy_omp(const int& n, const double a, const double* x, const int& incx,
                double* y, const int& incy) {
 #pragma omp parallel for num_threads(THREADS)
-  for (int i = 0; i < n; i++) y[i * incy] += a * x[i * incx];
+  for (int i = 0; i < n; i++) {
+    y[i * incy] += a * x[i * incx];
+  }
 }
 
 void saxpy_cl(int n, float a, const float* x, int incx, float* y, int incy,
@@ -171,7 +180,6 @@ cl_uint getCountAndListOfPlatforms(std::vector<cl_platform_id>& pl) {
   cl_platform_id* platforms = new cl_platform_id[platformCount];
   clGetPlatformIDs(platformCount, platforms, nullptr);
   for (cl_uint i = 0; i < platformCount; ++i) {
-    // Get platform info
     char platformName[128];
     clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, 128, platformName,
                       nullptr);
@@ -184,7 +192,6 @@ cl_uint getCountAndListOfPlatforms(std::vector<cl_platform_id>& pl) {
       clGetDeviceInfo(cpus[j], CL_DEVICE_NAME, 128, cpuName, nullptr);
     }
 
-    // Get GPU count on platform && info
     cl_uint gpuCount = 0;
     clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, 0, nullptr, &gpuCount);
     cl_device_id* gpus = new cl_device_id[gpuCount];

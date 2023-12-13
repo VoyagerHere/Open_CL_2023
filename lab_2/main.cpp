@@ -66,8 +66,8 @@ int main(int argc, char** argv) {
         saxpy_cl(n, a, x, inc_x, y, inc_y, gpus[i], time, group_size);
         char name[128];
         clGetDeviceInfo(gpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
-        std::cout << "Size: " << group_size
-                  << " GPU: " << TIME_MS(time.first, time.second) << " "
+        std::cout << "Group size: " << group_size
+                  << "GPU: " << TIME_MS(time.first, time.second) << " "
                   << check<float>(FLAG_CHECK, ref, y, y_size) << std::endl;
       }
     }
@@ -85,7 +85,6 @@ int main(int argc, char** argv) {
     double* ref = new double[y_size];
     fillData<double>(x, x_size);
 
-    // SEQ
     fillData<double>(y, y_size);
     auto t0 = std::chrono::high_resolution_clock::now();
     daxpy(n, a, x, inc_x, y, inc_y);
@@ -103,7 +102,6 @@ int main(int argc, char** argv) {
     std::cout << "GPU"
               << "\n";
     for (size_t group_size = 8; group_size <= 256; group_size *= 2) {
-      // GPU OPENCL
       for (int i = 0; i < gpus.size(); i++) {
         fillData<double>(y, y_size);
         timer time;
