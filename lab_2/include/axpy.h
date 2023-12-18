@@ -10,6 +10,9 @@
 #include <omp.h>
 #include <vector>
 
+cl_uint getCountAndListOfPlatforms(std::vector<cl_platform_id>& pl);
+cl_program createProgramFromSource(cl_context ctx, const char* file);
+cl_device_id getDevice(cl_device_type type, cl_platform_id& plfrm_id);
 
 void saxpy(const int& n, const float a, const float* x, const int& incx,
            float* y, const int& incy);

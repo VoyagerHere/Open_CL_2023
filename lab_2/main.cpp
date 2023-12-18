@@ -13,16 +13,17 @@ int main(int argc, char** argv) {
   if (platformCount < 1) {
     return -1;
   }
+  std::cout << platforms.size() << std::endl;
 
   for (size_t i = 0; i < platformCount; i++) {
     cl_platform_id platform = platforms[i];
-
     cl_device_id gpu = getDevice(CL_DEVICE_TYPE_GPU, platform);
     if (gpu != nullptr) gpus.push_back(std::make_pair(platform, gpu));
 
     cl_device_id cpu = getDevice(CL_DEVICE_TYPE_CPU, platform);
     if (cpu != nullptr) cpus.push_back(std::make_pair(platform, cpu));
   }
+
 
   const int n = 150'000'000;
   const int inc_x = 1;
@@ -59,7 +60,7 @@ int main(int argc, char** argv) {
               << "\n";
     for (size_t group_size = 8; group_size <= 256; group_size *= 2) {
       // GPU OPENCL
-      for (int i = 0; i < gpus.size(); i++) {
+      for (size_t i = 0; i < gpus.size(); i++) {
         fillData<float>(y, y_size);
         timer time;
         saxpy_cl(n, a, x, inc_x, y, inc_y, gpus[i], time, group_size);
@@ -101,7 +102,7 @@ int main(int argc, char** argv) {
     std::cout << "GPU"
               << "\n";
     for (size_t group_size = 8; group_size <= 256; group_size *= 2) {
-      for (int i = 0; i < gpus.size(); i++) {
+      for (size_t i = 0; i < gpus.size(); i++) {
         fillData<double>(y, y_size);
         timer time;
         daxpy_cl(n, a, x, inc_x, y, inc_y, gpus[i], time);
