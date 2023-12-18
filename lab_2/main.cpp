@@ -4,8 +4,7 @@
 #include <vector>
 
 #include "include/axpy.h"
-
-#define FLAG_CHECK true
+#include "include/utils.h"
 
 int main(int argc, char** argv) {
   std::vector<cl_platform_id> platforms;
@@ -46,7 +45,7 @@ int main(int argc, char** argv) {
     saxpy(n, a, x, inc_x, y, inc_y);
     auto t1 = std::chrono::high_resolution_clock::now();
     std::cout << "SEQ: " << TIME_MS(t0, t1) << std::endl;
-    std::memcpy(ref, y, y_size * sizeof(float));
+    memcpy(ref, y, y_size * sizeof(float));
 
     // OMP
     fillData<float>(y, y_size);
@@ -54,7 +53,7 @@ int main(int argc, char** argv) {
     saxpy_omp(n, a, x, inc_x, y, inc_y);
     t1 = std::chrono::high_resolution_clock::now();
     std::cout << "OMP: " << TIME_MS(t0, t1) << " "
-              << check<float>(FLAG_CHECK, ref, y, y_size) << std::endl;
+              << check<float>(ref, y, y_size) << std::endl;
 
     std::cout << "GPU"
               << "\n";
@@ -68,7 +67,7 @@ int main(int argc, char** argv) {
         clGetDeviceInfo(gpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
         std::cout << "Group size: " << group_size
                   << "GPU: " << TIME_MS(time.first, time.second) << " "
-                  << check<float>(FLAG_CHECK, ref, y, y_size) << std::endl;
+                  << check<float>(ref, y, y_size) << std::endl;
       }
     }
 
@@ -90,14 +89,14 @@ int main(int argc, char** argv) {
     daxpy(n, a, x, inc_x, y, inc_y);
     auto t1 = std::chrono::high_resolution_clock::now();
     std::cout << "SEQ: " << TIME_MS(t0, t1) << std::endl;
-    std::memcpy(ref, y, y_size * sizeof(double));
+    memcpy(ref, y, y_size * sizeof(double));
 
     fillData<double>(y, y_size);
     t0 = std::chrono::high_resolution_clock::now();
     daxpy_omp(n, a, x, inc_x, y, inc_y);
     t1 = std::chrono::high_resolution_clock::now();
     std::cout << "OMP: " << TIME_MS(t0, t1) << " "
-              << check<double>(FLAG_CHECK, ref, y, y_size) << std::endl;
+              << check<double>(ref, y, y_size) << std::endl;
 
     std::cout << "GPU"
               << "\n";
@@ -110,7 +109,7 @@ int main(int argc, char** argv) {
         clGetDeviceInfo(gpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
         std::cout << "Size: " << group_size
                   << " GPU: " << TIME_MS(time.first, time.second) << " "
-                  << check<double>(FLAG_CHECK, ref, y, y_size) << std::endl;
+                  << check<double>(ref, y, y_size) << std::endl;
       }
     }
 

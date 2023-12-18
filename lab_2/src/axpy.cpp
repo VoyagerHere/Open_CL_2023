@@ -1,4 +1,5 @@
 #include "../include/axpy.h"
+#include "../include/utils.h"
 #define THREADS omp_get_max_threads()
 
 void saxpy(const int& n, const float a, const float* x, const int& incx,
@@ -40,7 +41,7 @@ void saxpy_cl(int n, float a, const float* x, int incx, float* y, int incy,
       clCreateContext(properties, 1, &dev_pair.second, NULL, NULL, NULL);
 
   cl_command_queue queue =
-      clCreateCommandQueueWithProperties(context, dev_pair.second, 0, NULL);
+      clCreateCommandQueue(context, dev_pair.second, 0, NULL);;
 
   cl_program program =
       createProgramFromSource(context, "kernels/saxpy_kernel.cl");
@@ -93,7 +94,7 @@ void daxpy_cl(int n, double a, const double* x, int incx, double* y, int incy,
       clCreateContext(properties, 1, &dev_pair.second, NULL, NULL, NULL);
 
   cl_command_queue queue =
-      clCreateCommandQueueWithProperties(context, dev_pair.second, 0, NULL);
+      clCreateCommandQueue(context, dev_pair.second, 0, NULL);
 
   cl_program program =
       createProgramFromSource(context, "kernels/daxpy_kernel.cl");
@@ -134,75 +135,4 @@ void daxpy_cl(int n, double a, const double* x, int incx, double* y, int incy,
   clReleaseKernel(kernel);
   clReleaseCommandQueue(queue);
   clReleaseContext(context);
-}
-
-cl_program createProgramFromSource(cl_context ctx, const char* file) {
-  std::fstream kernel_file(file, std::ios::in);
-  std::string kernel_code((std::istreambuf_iterator<char>(kernel_file)),
-                          std::istreambuf_iterator<char>());
-  kernel_file.close();
-  const char* kernel_code_p = kernel_code.c_str();
-  size_t kernel_code_len = kernel_code.size();
-
-  cl_int errorcode = CL_SUCCESS;
-  cl_program program = clCreateProgramWithSource(ctx, 1, &kernel_code_p,
-                                                 &kernel_code_len, &errorcode);
-
-  return program;
-}
-
-cl_device_id getDevice(cl_device_type type, cl_platform_id& plfrm_id) {
-  cl_uint device_count = 0;
-  clGetDeviceIDs(plfrm_id, type, 0, nullptr, &device_count);
-
-  if (device_count == 0) return nullptr;
-
-  if (device_count > 0) {
-    std::vector<cl_device_id> device_vec(device_count);
-    clGetDeviceIDs(plfrm_id, type, device_count, device_vec.data(), nullptr);
-
-    if (device_vec.size() > 0) {
-      cl_device_id id = device_vec.front();
-      return id;
-    }
-  }
-  return nullptr;
-}
-
-cl_uint getCountAndListOfPlatforms(std::vector<cl_platform_id>& pl) {
-  cl_uint platformCount = 0;
-  clGetPlatformIDs(0, nullptr, &platformCount);
-
-  if (platformCount == 0) {
-    return -1;
-  }
-
-  cl_platform_id* platforms = new cl_platform_id[platformCount];
-  clGetPlatformIDs(platformCount, platforms, nullptr);
-  for (cl_uint i = 0; i < platformCount; ++i) {
-    char platformName[128];
-    clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, 128, platformName,
-                      nullptr);
-    cl_uint cpuCount = 0;
-    clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_CPU, 0, nullptr, &cpuCount);
-    cl_device_id* cpus = new cl_device_id[cpuCount];
-    clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_CPU, cpuCount, cpus, nullptr);
-    for (cl_uint j = 0; j < cpuCount; ++j) {
-      char cpuName[128];
-      clGetDeviceInfo(cpus[j], CL_DEVICE_NAME, 128, cpuName, nullptr);
-    }
-
-    cl_uint gpuCount = 0;
-    clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, 0, nullptr, &gpuCount);
-    cl_device_id* gpus = new cl_device_id[gpuCount];
-    clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, gpuCount, gpus, nullptr);
-    for (cl_uint j = 0; j < gpuCount; ++j) {
-      char gpuName[128];
-      clGetDeviceInfo(gpus[j], CL_DEVICE_NAME, 128, gpuName, nullptr);
-    }
-    pl.push_back(platforms[i]);
-  }
-
-  delete[] platforms;
-  return platformCount;
 }

@@ -1,6 +1,5 @@
 #include <CL/cl.h>
 #include <stdio.h>
-
 #include <iostream>
 
 const char* kernel_1 =
@@ -73,7 +72,7 @@ int main() {
     clCreateContext(properties, 1, &device, NULL, NULL, NULL);
 
   cl_command_queue queue =
-      clCreateCommandQueueWithProperties(context, device, 0, NULL);
+      clCreateCommandQueue(context, device, 0, NULL);
 
   {
     cl_program program =
