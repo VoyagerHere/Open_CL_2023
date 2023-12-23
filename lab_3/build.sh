@@ -1,0 +1,1 @@
+/c/msys64/mingw64/bin/g++ -Wall -I ../ src/matrix_mult.cpp main.cpp /c/Windows/System32/OpenCL.dll -o main.exe -fopenmp
