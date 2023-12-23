@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "include/matrix_mult.h"
+#include "include/utils.h"
+
 
 #define m 1024
 #define n 1024
@@ -35,8 +37,8 @@ int main(int argc, char** argv) {
   float* c = new float[c_size];
   float* c_ref = new float[c_size];
 
-  fillMatrix<float>(a, a_size);
-  fillMatrix<float>(b, b_size);
+  fillData<float>(a, a_size);
+  fillData<float>(b, b_size);
 
   auto t0 = omp_get_wtime();
   mult_seq(m, n, k, a, b, c);
@@ -47,15 +49,15 @@ int main(int argc, char** argv) {
   t0 = omp_get_wtime();
   mult_omp(m, n, k, a, b, c);
   t1 = omp_get_wtime();
-  std::cout << "OMP: " << t1 - t0 << " " << check<float>(true, c_ref, c, c_size)
+  std::cout << "OMP: " << t1 - t0 << " " << check<float>(c_ref, c, c_size)
             << std::endl;
 
   t0 = mult_gpu(m, n, k, a, b, c, gpus[0]);
-  std::cout << "GPU: " << t0 << " " << check<float>(true, c_ref, c, c_size)
+  std::cout << "GPU: " << t0 << " " << check<float>(c_ref, c, c_size)
             << std::endl;
 
   t0 = mult_gemm(m, n, k, a, b, c, gpus[0]);
-  std::cout << "GEMM: " << t0 << " " << check<float>(true, c_ref, c, c_size)
+  std::cout << "GEMM: " << t0 << " " << check<float>(c_ref, c, c_size)
             << std::endl;
 
   return 0;

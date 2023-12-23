@@ -1,5 +1,5 @@
-#ifndef _GPU_MATMUL_H_
-#define _GPU_MATMUL_H_
+#ifndef _MATRIX_MULT_H
+#define _MATRIX_MULT_H
 
 #define THREADS 8
 #define BLOCK 16
@@ -33,30 +33,4 @@ template <typename T>
 void fillMatrix(T* data, const size_t size) {
   for (int i = 0; i < size; ++i) data[i] = i;
 }
-
-template <typename T>
-bool compare(T* actual, T* reference, int size) {
-  std::cout << std::fixed;
-  std::cout.precision(6);
-  for (int i = 0; i < size; ++i)
-    if (std::abs(actual[i] - reference[i]) >=
-        std::numeric_limits<T>::epsilon()) {
-      std::cout << "index: " << i << " expected: " << reference[i]
-                << " vs actual: " << actual[i] << std::endl;
-      return false;
-    }
-  return true;
-}
-
-template <typename T>
-std::string check(bool flag, T* result, T* reference, size_t size) {
-  if (flag) {
-    bool res = compare<T>(result, reference, size);
-    if (res) {
-      return "PASSED";
-    }
-    return "FAILED";
-  }
-}
-
-#endif _GPU_MATMUL_H_
+#endif // _MATRIX_MULT_H

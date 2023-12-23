@@ -11,6 +11,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <cstring>
 
 
 #define TIME_US(t0, t1) std::chrono::duration_cast<us>(t1 - t0).count() << " us"

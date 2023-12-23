@@ -3,8 +3,6 @@
 #define THREADS omp_get_max_threads()
 
 
-
-
 cl_uint getCountAndListOfPlatforms(std::vector<cl_platform_id>& pl) {
   cl_uint platformCount = 0;
   clGetPlatformIDs(0, nullptr, &platformCount);

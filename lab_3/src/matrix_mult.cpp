@@ -1,6 +1,8 @@
 #include "../include/matrix_mult.h"
 
 #include <omp.h>
+#include <cstring> 
+#include <iostream> 
 
 cl_program createProgramFromSource(cl_context ctx, const char* file) {
   std::fstream kernel_file(file, std::ios::in);
@@ -111,7 +113,7 @@ double mult_gpu(
                                        nullptr, &error);
 
   cl_command_queue queue =
-      clCreateCommandQueueWithProperties(context, dev_pair.second, 0, &error);
+      clCreateCommandQueue(context, dev_pair.second, 0, NULL);
 
   cl_program program = createProgramFromSource(context, "kernels/normal.cl");
   clBuildProgram(program, 1, &dev_pair.second, nullptr, nullptr, nullptr);
@@ -181,7 +183,7 @@ double mult_gemm(const size_t m, const size_t n, const size_t k, const float* a,
                                        nullptr, &error);
 
   cl_command_queue queue =
-      clCreateCommandQueueWithProperties(context, dev_pair.second, 0, &error);
+      clCreateCommandQueue(context, dev_pair.second, 0, NULL);
 
   cl_program program = createProgramFromSource(context, "kernels/gemm.cl");
   std::string build_options = "-DBLOCK=" + std::to_string(BLOCK);

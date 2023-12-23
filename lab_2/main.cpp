@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstring>
 
 #include "include/axpy.h"
 #include "include/utils.h"
@@ -37,44 +38,47 @@ int main(int argc, char** argv) {
     float a = 10.0;
     float* x = new float[x_size];
     float* y = new float[y_size];
-    float* ref = new float[y_size];
+    float* y_ref = new float[y_size];
+    float* result_ref = new float[y_size];
     fillData<float>(x, x_size);
 
     // SEQ
     fillData<float>(y, y_size);
+    std::memcpy(y_ref, y, y_size * sizeof(float));
     auto t0 = std::chrono::high_resolution_clock::now();
     saxpy(n, a, x, inc_x, y, inc_y);
     auto t1 = std::chrono::high_resolution_clock::now();
     std::cout << "SEQ: " << TIME_MS(t0, t1) << std::endl;
-    memcpy(ref, y, y_size * sizeof(float));
+    std::memcpy(result_ref, y, y_size * sizeof(float));
 
     // OMP
-    fillData<float>(y, y_size);
+    std::memcpy(y, y_ref, y_size * sizeof(float));
     t0 = std::chrono::high_resolution_clock::now();
     saxpy_omp(n, a, x, inc_x, y, inc_y);
     t1 = std::chrono::high_resolution_clock::now();
     std::cout << "OMP: " << TIME_MS(t0, t1) << " "
-              << check<float>(ref, y, y_size) << std::endl;
+              << check<float>(result_ref, y, y_size) << std::endl;
 
     std::cout << "GPU"
               << "\n";
     for (size_t group_size = 8; group_size <= 256; group_size *= 2) {
       // GPU OPENCL
       for (size_t i = 0; i < gpus.size(); i++) {
-        fillData<float>(y, y_size);
+        std::memcpy(y, y_ref, y_size * sizeof(float));
         timer time;
         saxpy_cl(n, a, x, inc_x, y, inc_y, gpus[i], time, group_size);
         char name[128];
         clGetDeviceInfo(gpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
         std::cout << "Group size: " << group_size
                   << "GPU: " << TIME_MS(time.first, time.second) << " "
-                  << check<float>(ref, y, y_size) << std::endl;
+                  << check<float>(result_ref, y, y_size) << std::endl;
       }
     }
 
     delete[] x;
     delete[] y;
-    delete[] ref;
+    delete[] y_ref;
+    delete[] result_ref;
   }
 
   std::cout << std::endl << "daxpy" << std::endl << std::endl;
@@ -82,41 +86,44 @@ int main(int argc, char** argv) {
     double a = 10.0;
     double* x = new double[x_size];
     double* y = new double[y_size];
-    double* ref = new double[y_size];
+    double* y_ref = new double[y_size];
+    double* result_ref = new double[y_size];
     fillData<double>(x, x_size);
 
     fillData<double>(y, y_size);
+    std::memcpy(y_ref, y, y_size * sizeof(double));
     auto t0 = std::chrono::high_resolution_clock::now();
     daxpy(n, a, x, inc_x, y, inc_y);
     auto t1 = std::chrono::high_resolution_clock::now();
     std::cout << "SEQ: " << TIME_MS(t0, t1) << std::endl;
-    memcpy(ref, y, y_size * sizeof(double));
+    std::memcpy(result_ref, y, y_size * sizeof(double));
 
-    fillData<double>(y, y_size);
+    std::memcpy(y, y_ref, y_size * sizeof(double));
     t0 = std::chrono::high_resolution_clock::now();
     daxpy_omp(n, a, x, inc_x, y, inc_y);
     t1 = std::chrono::high_resolution_clock::now();
     std::cout << "OMP: " << TIME_MS(t0, t1) << " "
-              << check<double>(ref, y, y_size) << std::endl;
+              << check<double>(result_ref, y, y_size) << std::endl;
 
     std::cout << "GPU"
               << "\n";
     for (size_t group_size = 8; group_size <= 256; group_size *= 2) {
       for (size_t i = 0; i < gpus.size(); i++) {
-        fillData<double>(y, y_size);
+        std::memcpy(y, y_ref, y_size * sizeof(double));
         timer time;
         daxpy_cl(n, a, x, inc_x, y, inc_y, gpus[i], time);
         char name[128];
         clGetDeviceInfo(gpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
         std::cout << "Size: " << group_size
                   << " GPU: " << TIME_MS(time.first, time.second) << " "
-                  << check<double>(ref, y, y_size) << std::endl;
+                  << check<double>(result_ref, y, y_size) << std::endl;
       }
     }
 
     delete[] x;
     delete[] y;
-    delete[] ref;
+    delete[] y_ref;
+    delete[] result_ref;
   }
 
   return 0;
