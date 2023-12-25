@@ -24,10 +24,10 @@ void saxpy_omp(const int& n, const float a, const float* x, const int& incx,
 void daxpy_omp(const int& n, const double a, const double* x, const int& incx,
                double* y, const int& incy);
 
-void saxpy_cl(int n, float a, const float* x, int incx, float* y, int incy,
-              std::pair<cl_platform_id, cl_device_id>& dev_pair, timer& time,
+double saxpy_cl(int n, float a, const float* x, int incx, float* y, int incy,
+              std::pair<cl_platform_id, cl_device_id>& dev_pair,
               size_t group_size = 256);
-void daxpy_cl(int n, double a, const double* x, int incx, double* y, int incy,
-              std::pair<cl_platform_id, cl_device_id>& dev_pair, timer& time,
+double daxpy_cl(int n, double a, const double* x, int incx, double* y, int incy,
+              std::pair<cl_platform_id, cl_device_id>& dev_pair,
               size_t group_size = 256);
 #endif // _AXPY_H_

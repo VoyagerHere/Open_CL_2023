@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     if (cpu != nullptr) cpus.push_back(std::make_pair(platform, cpu));
   }
 
-
+  std::cout << cpus.size();
   const int n = 150'000'000;
   const int inc_x = 1;
   const int inc_y = 1;
@@ -45,19 +45,35 @@ int main(int argc, char** argv) {
     // SEQ
     fillData<float>(y, y_size);
     std::memcpy(y_ref, y, y_size * sizeof(float));
-    auto t0 = std::chrono::high_resolution_clock::now();
+    auto t0 = omp_get_wtime();
     saxpy(n, a, x, inc_x, y, inc_y);
-    auto t1 = std::chrono::high_resolution_clock::now();
-    std::cout << "SEQ: " << TIME_MS(t0, t1) << std::endl;
+    auto t1 = omp_get_wtime();
+    std::cout << "SEQ: " << t1 - t0 << std::endl;
     std::memcpy(result_ref, y, y_size * sizeof(float));
 
     // OMP
     std::memcpy(y, y_ref, y_size * sizeof(float));
-    t0 = std::chrono::high_resolution_clock::now();
+    t0 = omp_get_wtime();
     saxpy_omp(n, a, x, inc_x, y, inc_y);
-    t1 = std::chrono::high_resolution_clock::now();
-    std::cout << "OMP: " << TIME_MS(t0, t1) << " "
+    t1 = omp_get_wtime();
+    std::cout << "OMP: " << t1 - t0 << " "
               << check<float>(result_ref, y, y_size) << std::endl;
+
+
+    std::cout << "OpenCl CPU"
+              << "\n";
+    for (size_t group_size = 8; group_size <= 256; group_size *= 2) {
+      // CPU OPENCL
+      for (size_t i = 0; i < cpus.size(); i++) {
+        std::memcpy(y, y_ref, y_size * sizeof(float));
+        double time = saxpy_cl(n, a, x, inc_x, y, inc_y, gpus[i], group_size);
+        char name[128];
+        clGetDeviceInfo(cpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
+        std::cout << "Group size: " << group_size
+                  << "OpenCL CPU: " << time << " "
+                  << check<float>(result_ref, y, y_size) << std::endl;
+      }
+    }
 
     std::cout << "GPU"
               << "\n";
@@ -65,12 +81,12 @@ int main(int argc, char** argv) {
       // GPU OPENCL
       for (size_t i = 0; i < gpus.size(); i++) {
         std::memcpy(y, y_ref, y_size * sizeof(float));
-        timer time;
-        saxpy_cl(n, a, x, inc_x, y, inc_y, gpus[i], time, group_size);
+
+        double time = saxpy_cl(n, a, x, inc_x, y, inc_y, gpus[i], group_size);
         char name[128];
         clGetDeviceInfo(gpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
         std::cout << "Group size: " << group_size
-                  << "GPU: " << TIME_MS(time.first, time.second) << " "
+                  << "GPU: " << time << " "
                   << check<float>(result_ref, y, y_size) << std::endl;
       }
     }
@@ -92,30 +108,43 @@ int main(int argc, char** argv) {
 
     fillData<double>(y, y_size);
     std::memcpy(y_ref, y, y_size * sizeof(double));
-    auto t0 = std::chrono::high_resolution_clock::now();
+    auto t0 = omp_get_wtime();
     daxpy(n, a, x, inc_x, y, inc_y);
-    auto t1 = std::chrono::high_resolution_clock::now();
-    std::cout << "SEQ: " << TIME_MS(t0, t1) << std::endl;
+    auto t1 = omp_get_wtime();
+    std::cout << "SEQ: " << t1 - t0 << std::endl;
     std::memcpy(result_ref, y, y_size * sizeof(double));
 
     std::memcpy(y, y_ref, y_size * sizeof(double));
-    t0 = std::chrono::high_resolution_clock::now();
+    t0 = omp_get_wtime();
     daxpy_omp(n, a, x, inc_x, y, inc_y);
-    t1 = std::chrono::high_resolution_clock::now();
-    std::cout << "OMP: " << TIME_MS(t0, t1) << " "
+    t1 = omp_get_wtime();
+    std::cout << "OMP: " << t1 - t0 << " "
               << check<double>(result_ref, y, y_size) << std::endl;
-
+   
+   
+    std::cout << "OpenCL CPU"
+              << "\n";
+    for (size_t group_size = 8; group_size <= 256; group_size *= 2) {
+      for (size_t i = 0; i < cpus.size(); i++) {
+        std::memcpy(y, y_ref, y_size * sizeof(double));
+        double time = daxpy_cl(n, a, x, inc_x, y, inc_y, gpus[i]);
+        char name[128];
+        clGetDeviceInfo(cpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
+        std::cout << "Size: " << group_size
+                  << " GPU: " << time << " "
+                  << check<double>(result_ref, y, y_size) << std::endl;
+      }
+    }
     std::cout << "GPU"
               << "\n";
     for (size_t group_size = 8; group_size <= 256; group_size *= 2) {
       for (size_t i = 0; i < gpus.size(); i++) {
         std::memcpy(y, y_ref, y_size * sizeof(double));
-        timer time;
-        daxpy_cl(n, a, x, inc_x, y, inc_y, gpus[i], time);
+        double time = daxpy_cl(n, a, x, inc_x, y, inc_y, gpus[i]);
         char name[128];
         clGetDeviceInfo(gpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
         std::cout << "Size: " << group_size
-                  << " GPU: " << TIME_MS(time.first, time.second) << " "
+                  << " GPU: " << time << " "
                   << check<double>(result_ref, y, y_size) << std::endl;
       }
     }

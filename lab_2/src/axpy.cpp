@@ -103,8 +103,8 @@ void daxpy_omp(const int& n, const double a, const double* x, const int& incx,
   }
 }
 
-void saxpy_cl(int n, float a, const float* x, int incx, float* y, int incy,
-              std::pair<cl_platform_id, cl_device_id>& dev_pair, timer& time,
+double saxpy_cl(int n, float a, const float* x, int incx, float* y, int incy,
+              std::pair<cl_platform_id, cl_device_id>& dev_pair,
               size_t group) {
   cl_context_properties properties[3] = {
       CL_CONTEXT_PLATFORM, (cl_context_properties)dev_pair.first, 0};
@@ -140,10 +140,10 @@ void saxpy_cl(int n, float a, const float* x, int incx, float* y, int incy,
 
   size_t size = (n % group == 0) ? n : n + group - n % group;
 
-  time.first = std::chrono::high_resolution_clock::now();
+  auto t0 = omp_get_wtime();
   clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &size, &group, 0, NULL, NULL);
   clFinish(queue);
-  time.second = std::chrono::high_resolution_clock::now();
+  auto t1 = omp_get_wtime();
 
   clEnqueueReadBuffer(queue, y_buffer, CL_TRUE, 0, sizeof(float) * incy * n, y,
                       0, NULL, NULL);
@@ -154,10 +154,11 @@ void saxpy_cl(int n, float a, const float* x, int incx, float* y, int incy,
   clReleaseKernel(kernel);
   clReleaseCommandQueue(queue);
   clReleaseContext(context);
+  return (t1 - t0);
 }
 
-void daxpy_cl(int n, double a, const double* x, int incx, double* y, int incy,
-              std::pair<cl_platform_id, cl_device_id>& dev_pair, timer& time,
+double daxpy_cl(int n, double a, const double* x, int incx, double* y, int incy,
+              std::pair<cl_platform_id, cl_device_id>& dev_pair,
               size_t group) {
   cl_context_properties properties[3] = {
       CL_CONTEXT_PLATFORM, (cl_context_properties)dev_pair.first, 0};
@@ -193,10 +194,11 @@ void daxpy_cl(int n, double a, const double* x, int incx, double* y, int incy,
 
   size_t size = (n % group == 0) ? n : n + group - n % group;
 
-  time.first = std::chrono::high_resolution_clock::now();
+  auto t0 = omp_get_wtime();
   clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &size, &group, 0, NULL, NULL);
   clFinish(queue);
-  time.second = std::chrono::high_resolution_clock::now();
+  auto t1 = omp_get_wtime();
+
 
   clEnqueueReadBuffer(queue, y_buffer, CL_TRUE, 0, sizeof(double) * incy * n, y,
                       0, NULL, NULL);
@@ -207,5 +209,6 @@ void daxpy_cl(int n, double a, const double* x, int incx, double* y, int incy,
   clReleaseKernel(kernel);
   clReleaseCommandQueue(queue);
   clReleaseContext(context);
+  return t1 - t0;
 }
 

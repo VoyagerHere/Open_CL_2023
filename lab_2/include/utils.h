@@ -13,18 +13,6 @@
 #include <ctime>
 #include <cstring>
 
-
-#define TIME_US(t0, t1) std::chrono::duration_cast<us>(t1 - t0).count() << " us"
-#define TIME_MS(t0, t1) std::chrono::duration_cast<ms>(t1 - t0).count() << " ms"
-#define TIME_S(t0, t1) std::chrono::duration_cast<s>(t1 - t0).count() << " s"
-
-using us = std::chrono::microseconds;
-using ms = std::chrono::milliseconds;
-using s = std::chrono::seconds;
-
-using timer = std::pair<std::chrono::high_resolution_clock::time_point,
-                        std::chrono::high_resolution_clock::time_point>;
-
 template <typename T>
 void fillData(T* data, const size_t size) {
   srand(time(0));
