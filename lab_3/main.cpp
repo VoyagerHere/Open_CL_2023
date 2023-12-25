@@ -60,5 +60,9 @@ int main(int argc, char** argv) {
   std::cout << "GEMM: " << t0 << " " << check<float>(c_ref, c, c_size)
             << std::endl;
 
+  t0 = mult_gemm_image(m, n, k, a, b, c, gpus[0]);
+  std::cout << "GEMM Image: " << t0 << " " << check<float>(c_ref, c, c_size)
+            << std::endl;
+
   return 0;
 }

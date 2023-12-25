@@ -243,3 +243,80 @@ double mult_gemm(const size_t m, const size_t n, const size_t k, const float* a,
 
   return t1 - t0;
 }
+
+double mult_gemm_image(
+  const size_t m, const size_t n, const size_t k, float* a,
+  float* b, float* c,
+  std::pair<cl_platform_id, cl_device_id>& dev_pair) {
+ cl_int error = CL_SUCCESS;
+ cl_context_properties properties[3] = {
+    CL_CONTEXT_PLATFORM, (cl_context_properties)dev_pair.first, 0};
+
+ cl_context context = clCreateContext(properties, 1, &dev_pair.second, nullptr,
+                                 nullptr, &error);
+
+ cl_command_queue queue =
+    clCreateCommandQueue(context, dev_pair.second, 0, NULL);
+
+ cl_program program = createProgramFromSource(context, "kernels/gemm_image.cl");
+ std::string build_options = "-DBLOCK=" + std::to_string(BLOCK);
+ clBuildProgram(program, 1, &dev_pair.second, build_options.c_str(), nullptr,
+               nullptr);
+
+ cl_kernel kernel = clCreateKernel(program, "gemm_image", &error);
+
+ // Create image descriptors
+ cl_image_desc desc;
+ memset(&desc, 0, sizeof(desc));
+ desc.image_type = CL_MEM_OBJECT_IMAGE2D;
+ desc.image_width = m;
+ desc.image_height = n;
+ desc.image_row_pitch = sizeof(float) * m;
+ desc.image_slice_pitch = sizeof(float) * m * n;
+
+ cl_image_format format;
+ format.image_channel_order = CL_R;
+ format.image_channel_data_type = CL_FLOAT;
+
+ // Create images
+ cl_mem a_image = clCreateImage(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &format, &desc, a, &error);
+ cl_mem b_image = clCreateImage(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &format, &desc, b, &error);
+ cl_mem c_image = clCreateImage(context, CL_MEM_WRITE_ONLY, &format, &desc, nullptr, &error);
+
+ // Set kernel arguments
+ clSetKernelArg(kernel, 0, sizeof(unsigned int), &m);
+ clSetKernelArg(kernel, 1, sizeof(unsigned int), &n);
+ clSetKernelArg(kernel, 2, sizeof(unsigned int), &k);
+ clSetKernelArg(kernel, 3, sizeof(cl_mem), &a_image);
+ clSetKernelArg(kernel, 4, sizeof(cl_mem), &b_image);
+ clSetKernelArg(kernel, 5, sizeof(cl_mem), &c_image);
+
+ size_t group = 16;
+ clGetKernelWorkGroupInfo(kernel, dev_pair.second, CL_KERNEL_WORK_GROUP_SIZE,
+                       sizeof(size_t), &group, nullptr);
+
+ size_t global[2] = {m, n};
+ size_t local[2] = {static_cast<size_t>(BLOCK), static_cast<size_t>(BLOCK)};
+
+ const size_t ndims = 2;
+ auto t0 = omp_get_wtime();
+ clEnqueueNDRangeKernel(queue, kernel, ndims, nullptr, global, local, 0,
+                     nullptr, nullptr);
+ clFinish(queue);
+ auto t1 = omp_get_wtime();
+ size_t origin[3] = {0, 0, 0};
+ size_t region[3] = {m, n, 1};
+
+ clEnqueueReadImage(queue, c_image, CL_TRUE, origin, region, 0, 0, c, 0, nullptr, nullptr);
+
+ clReleaseMemObject(a_image);
+ clReleaseMemObject(b_image);
+ clReleaseMemObject(c_image);
+ clReleaseProgram(program);
+ clReleaseKernel(kernel);
+ clReleaseCommandQueue(queue);
+ clReleaseContext(context);
+
+ return t1 - t0;
+}
+

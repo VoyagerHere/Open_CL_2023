@@ -24,6 +24,9 @@ double mult_gpu(
 double mult_gemm(const size_t m, const size_t n, const size_t k, const float* a,
             const float* b, float* c,
             std::pair<cl_platform_id, cl_device_id>& dev_pair);
+double mult_gemm_image(const size_t m, const size_t n, const size_t k, float* a,
+            float* b, float* c,
+            std::pair<cl_platform_id, cl_device_id>& dev_pair);
 
 cl_program createProgramFromSource(cl_context ctx, const char* file);
 cl_uint getPlatforms(std::vector<cl_platform_id>& pl);
