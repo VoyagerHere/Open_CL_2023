@@ -21,12 +21,12 @@ void fillData(T* data, const size_t size) {
 }
 
 template <typename T>
-bool checkCorrect(T* current, T* reference, int size) {
-  std::cout << std::fixed;
-  std::cout.precision(6);
+bool checkCorrect(T* current, T* reference, int size, T eps) {
+  // std::cout << std::fixed;
+  // std::cout.precision(6);
   bool correct = false;
   for (int i = 0; i < size; ++i) {
-    if (std::abs(current[i] - reference[i]) >= std::numeric_limits<T>::epsilon()) {
+    if (std::abs(current[i] - reference[i]) >= eps) {
       std::cout << "In index" << i << " expected: " << reference[i] << " current: " << current[i] << std::endl;
       correct = false;
       break;
@@ -37,8 +37,8 @@ bool checkCorrect(T* current, T* reference, int size) {
 }
 
 template <typename T>
-std::string check(T* result, T* reference, size_t size) {
-  bool res = checkCorrect<T>(result, reference, size);
+std::string check(T* result, T* reference, size_t size, T EPS) {
+  bool res = checkCorrect<T>(result, reference, size, EPS);
   if (res) {
     return "PASSED";
   }

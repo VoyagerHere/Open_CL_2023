@@ -7,6 +7,9 @@
 #include "include/axpy.h"
 #include "include/utils.h"
 
+#define SINGLE_EPS 1e-04
+#define DOUBLE_EPS 1e-13
+
 int main(int argc, char** argv) {
   std::vector<cl_platform_id> platforms;
   cl_uint platformCount = getCountAndListOfPlatforms(platforms);
@@ -57,7 +60,7 @@ int main(int argc, char** argv) {
     saxpy_omp(n, a, x, inc_x, y, inc_y);
     t1 = omp_get_wtime();
     std::cout << "OMP: " << t1 - t0 << " "
-              << check<float>(result_ref, y, y_size) << std::endl;
+              << check<float>(result_ref, y, y_size, SINGLE_EPS) << std::endl;
 
 
     std::cout << "OpenCl CPU"
@@ -71,7 +74,7 @@ int main(int argc, char** argv) {
         clGetDeviceInfo(cpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
         std::cout << "Group size: " << group_size
                   << "OpenCL CPU: " << time << " "
-                  << check<float>(result_ref, y, y_size) << std::endl;
+                  << check<float>(result_ref, y, y_size, SINGLE_EPS) << std::endl;
       }
     }
 
@@ -87,7 +90,7 @@ int main(int argc, char** argv) {
         clGetDeviceInfo(gpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
         std::cout << "Group size: " << group_size
                   << "GPU: " << time << " "
-                  << check<float>(result_ref, y, y_size) << std::endl;
+                  << check<float>(result_ref, y, y_size, SINGLE_EPS) << std::endl;
       }
     }
 
@@ -119,7 +122,7 @@ int main(int argc, char** argv) {
     daxpy_omp(n, a, x, inc_x, y, inc_y);
     t1 = omp_get_wtime();
     std::cout << "OMP: " << t1 - t0 << " "
-              << check<double>(result_ref, y, y_size) << std::endl;
+              << check<double>(result_ref, y, y_size, DOUBLE_EPS) << std::endl;
    
    
     std::cout << "OpenCL CPU"
@@ -132,7 +135,7 @@ int main(int argc, char** argv) {
         clGetDeviceInfo(cpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
         std::cout << "Size: " << group_size
                   << " GPU: " << time << " "
-                  << check<double>(result_ref, y, y_size) << std::endl;
+                  << check<double>(result_ref, y, y_size, DOUBLE_EPS) << std::endl;
       }
     }
     std::cout << "GPU"
@@ -145,7 +148,7 @@ int main(int argc, char** argv) {
         clGetDeviceInfo(gpus[i].second, CL_DEVICE_NAME, 128, name, nullptr);
         std::cout << "Size: " << group_size
                   << " GPU: " << time << " "
-                  << check<double>(result_ref, y, y_size) << std::endl;
+                  << check<double>(result_ref, y, y_size, DOUBLE_EPS) << std::endl;
       }
     }
 

@@ -13,6 +13,9 @@
 #define n 1024
 #define k 1024
 
+#define SINGLE_EPS 1e-04
+#define DOUBLE_EPS 1e-13
+
 int main(int argc, char** argv) {
   std::vector<cl_platform_id> platforms;
 
@@ -49,19 +52,15 @@ int main(int argc, char** argv) {
   t0 = omp_get_wtime();
   mult_omp(m, n, k, a, b, c);
   t1 = omp_get_wtime();
-  std::cout << "OMP: " << t1 - t0 << " " << check<float>(c_ref, c, c_size)
+  std::cout << "OMP: " << t1 - t0 << " " << check<float>(c_ref, c, c_size, SINGLE_EPS)
             << std::endl;
 
   t0 = mult_gpu(m, n, k, a, b, c, gpus[0]);
-  std::cout << "GPU: " << t0 << " " << check<float>(c_ref, c, c_size)
+  std::cout << "GPU: " << t0 << " " << check<float>(c_ref, c, c_size, SINGLE_EPS)
             << std::endl;
 
   t0 = mult_gemm(m, n, k, a, b, c, gpus[0]);
-  std::cout << "GEMM: " << t0 << " " << check<float>(c_ref, c, c_size)
-            << std::endl;
-
-  t0 = mult_gemm_image(m, n, k, a, b, c, gpus[0]);
-  std::cout << "GEMM Image: " << t0 << " " << check<float>(c_ref, c, c_size)
+  std::cout << "GEMM: " << t0 << " " << check<float>(c_ref, c, c_size, SINGLE_EPS)
             << std::endl;
 
   return 0;

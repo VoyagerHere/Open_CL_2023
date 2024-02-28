@@ -11,7 +11,7 @@ const char* kernel_1 =
 "                       \n"
 "    int globalId = get_global_id(0);                                      "
 "                       \n"
-"    printf(\"I am from %d block, %d thread (global index: %d)\", groupId, "
+"    printf(\"I am from %d block, %d thread (global index: %d)\\n\", groupId, "
 "localId, globalId);    \n"
 "}                                                                         "
 "                       \n";
